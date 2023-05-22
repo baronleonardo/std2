@@ -1,0 +1,21 @@
+#pragma once
+
+#include <cstdio>
+
+namespace std2
+{
+    class Base
+    {
+    public:
+        static Base
+        create();
+
+        void
+        destroy();
+
+    protected:
+        Base() {};
+        Base& operator=(const Base& other) = default;
+        Base(const Base& other) = default;
+    };
+}

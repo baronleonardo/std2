@@ -1,0 +1,114 @@
+#pragma once
+
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+
+#include <Base>
+#include <Memory>
+
+namespace std2
+{
+    template<typename T>
+    struct VectorBoundaries
+    {
+        T* start = nullptr;
+        T* end = nullptr;
+    };
+
+    template<typename T>
+    using VectorB = VectorBoundaries<T>;
+
+    template<typename T>
+    class Vector: public Base
+    {
+    public:
+        static Vector
+        create()
+        {
+            Vector self;
+            return self;
+        }
+
+        static Vector
+        create_and_init(size_t length, T&& inital_value)
+        {
+            Vector vector;
+            vector._data = std2::Unique_ptr<T>::create_array(length);
+            for(int iii = 0; iii < length; ++iii)
+            {
+                vector._data.get()[iii] = std::move(inital_value);
+            }
+            vector._capacity = length;
+            vector._length = length;
+
+            return std::move(vector);
+        }
+
+        static Vector
+        create_with_capacity(size_t length)
+        {
+            Vector vector;
+            vector._data = std::move(std2::Unique_ptr<T>::create_array(length));
+            vector._capacity = length;
+
+            return std::move(vector);
+        }
+
+        static Vector
+        create_empty()
+        {
+            Vector vector;
+            return std::move(vector);
+        }
+
+        T&
+        get(size_t index)
+        {
+            return *this->data.get_at(this->data, index);
+        }
+
+        const VectorB<T>
+        boundaries()
+        {
+            if(this->_length > 0)
+            {
+                return VectorB<T> {
+                    .start = this->_data.get(),
+                    .end = this->_data.get() + this->_length
+                };
+            }
+            else
+            {
+                return VectorB<T>();
+            }
+        }
+
+        size_t
+        length()
+        {
+            return this->_length;
+        }
+
+        size_t
+        capacity()
+        {
+            return this->_capacity;
+        }
+
+        void
+        destroy()
+        {
+            puts("destroyed");
+            this->_capacity = 0;
+            this->_length = 0;
+        }
+
+    private:
+        std2::Unique_ptr<T> _data;
+        size_t _length = 0;
+        size_t _capacity = 0;
+
+        Vector(): _data(std2::Unique_ptr<T>::create()) {}
+    };
+}

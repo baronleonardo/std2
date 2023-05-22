@@ -1,0 +1,101 @@
+#pragma once
+
+#include <cstdlib>
+#include <type_traits>
+#include <cassert>
+#include <optional>
+
+#include <Base>
+
+namespace std2
+{
+    template<typename T>
+    class Unique_ptr: public Base
+    {
+    public:
+        static Unique_ptr
+        create()
+        {
+            Unique_ptr self;
+            return self;
+        }
+
+        static Unique_ptr
+        create_and_init()
+        {
+            auto self = Unique_ptr::create_array(1);
+            return self;
+        }
+
+        static Unique_ptr
+        create_array(size_t array_length)
+        {
+            Unique_ptr self;
+            self.data_count = array_length;
+            T* data = static_cast<T*>(std::malloc(array_length * sizeof(T)));
+            assert(data && "Couldn't allocate memory!");
+
+            if constexpr(std::is_class_v<T>)
+            {
+                for(int iii = 0; iii < self.data_count; ++iii)
+                {
+                    data[iii] = std::move(T::create());
+                }
+            }
+            // else
+            // {
+            //     for(int iii = 0; iii < array_length; ++iii)
+            //     {
+            //         (*data)[iii] = std::move(T());
+            //     }
+            // }
+
+            self.data = data;
+
+            return self;
+        }
+
+        T*
+        get()
+        {
+            return this->data;
+        }
+
+        std::optional<T*>
+        get_at(size_t index)
+        {
+            if(index < this->data_count)
+            {
+                return this->data + index;
+            }
+            else
+            {
+                return std::optional<T*>();
+            }
+        }
+
+        void
+        destroy()
+        {
+            if(this->data)
+            {
+                if constexpr(std::is_class_v<T>)
+                {
+                    for(int iii = 0; iii < this->data_count; ++iii)
+                    {
+                        this->data->destroy();
+                    }
+                }
+
+                free(this->data);
+                this->data = nullptr;
+            }
+        }
+
+    private:
+        T* data = nullptr;
+        size_t data_count = 0;
+
+        Unique_ptr() {};
+    };
+}
